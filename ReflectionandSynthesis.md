@@ -1,0 +1,9 @@
+# Reflection and Synthesis 
+
+**1. Feedback and decisions Based upon your notes from the technical review, synthesize the feedback you received addressing your key questions. How do you plan to incorporate it going forward? What new questions did you generate?**
+
+There were a lot of good points that were brought up during the Key Question portion of the Architectural Review. One such point was “why are you evolving for time instead of distance traveled”. To address this point, we are going to begin with evolving for time and seeing the results and then going from there. This brings the question, what happens if our algorithm evolves for a “bad” fitness. 
+
+**2. Review process reflection How did the review go? Did you get answers to your key questions? Did you provide too much/too little context for your audience? Did you stick closely to your planned agenda, or did you discover new things during the discussion that made you change your plans? What could you do next time to have an even more effective technical review?**
+
+The review was pretty successful with great feedback from the rest of the class. We received a few answers to the key questions that we posed to the class. We think we provided just the right amount of background and context to our audience. The video showing what we wanted to was a great resource to give the audience a visual model of our final product. We didn’t really stick closely with our agenda. We spent more time on the question portion of the review, which was honestly better than how much time we allocated for questions. To make an even more effective review, we could have done a bit more prep creating a better code structure to present. In addition, we could have done a better job splitting up which team member was going to say what during the presentation. Finally, more key questions could have helped with the discussion; however, there was plenty of discussion even with our three questions. 
