@@ -13,20 +13,13 @@ from gym.utils import colorize, seeding
 GAME = 'BipedalWalkerHardcore-v2'
 env = gym.make(GAME)
 
-
-# class World():
-
-# 	def __init__(self):
-# 		self.viwer = None
-
-# 		self.world = Box2D.b2World()
-
-# 	def make_path(self,x):
-# 		pass 
-
-
-# if __name__== "__main__":
-env.reset()
-while True:
-	env.render()
-
+for i_episode in range(20):
+    observation = env.reset()
+    for t in range(100):
+        env.render()
+        print(observation)
+        action = env.action_space.sample()
+        observation, reward, done, info = env.step(action)
+        if done:
+            print("Episode finished after {} timesteps".format(t+1))
+            break
