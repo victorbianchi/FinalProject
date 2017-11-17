@@ -5,6 +5,7 @@ genetic algorithms.
 """
 
 from random import (choice, random, randint)
+import view
 
 __all__ = ['Chromosome', 'Population']
 
@@ -21,10 +22,9 @@ class Chromosome:
     Note that this class is immutable.  Calling mate() or mutate() will
     result in a new chromosome instance being created.
     """
-
-    target = {"Leg Length": 5, "Leg Range": 30, "Mass": 20}
-    _target_gene = [5, 30, 20]
-    max_gene = [200, 90, 50]
+    # [leg height, leg width]
+    _target_gene = [100, 25]
+    max_gene = [200, 50]
 
     def __init__(self, gene):
         self.gene = gene
@@ -161,6 +161,7 @@ if __name__ == "__main__":
 
     for i in range(1, maxGenerations + 1):
         print("Generation %d:" % (i), pop.population[0].gene)
+        view.create(pop.population[0].gene[0]*.3, pop.population[0].gene[1]*.3)
         if pop.population[0].fitness == 0:
             break
         else:
