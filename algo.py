@@ -28,7 +28,7 @@ class Chromosome:
 
     def __init__(self, gene):
         self.gene = gene
-        self.fitness = Chromosome._update_fitness(gene)
+        self.fitness = 0
 
     def mate(self, mate):
         """
@@ -116,7 +116,7 @@ class Population:
         best = choice(self.population)
         for i in range(Population._tournamentSize):
             cont = choice(self.population)
-            if (cont.fitness < best.fitness): best = cont
+            if (cont.fitness > best.fitness): best = cont
 
         return best
 
@@ -157,14 +157,19 @@ class Population:
 
 if __name__ == "__main__":
     maxGenerations = 16384
-    pop = Population(size=20, crossover=0.8, elitism=0.1, mutation=0.3)
-
+    size = 20
+    pop = Population(size=size, crossover=0.8, elitism=0.2, mutation=0.3)
     for i in range(1, maxGenerations + 1):
-        print("Generation %d:" % (i), pop.population[0].gene)
-        view.create(pop.population[0].gene[0]*.3, pop.population[0].gene[1]*.3)
-        if pop.population[0].fitness == 0:
-            break
+        print("Generation %d:" % i)
+        total_fitness = 0
+        for c in range(size):
+            pop.population[c].fitness = view.create(pop.population[c].gene[0]*.3, pop.population[c].gene[1]*.3)
+            print("Character", c, "=", pop.population[c].fitness)
+            total_fitness += pop.population[c].fitness
         else:
+            print("Average Fitness of population", i, "=", total_fitness/size)
+            pop.population = list(sorted(pop.population, key=lambda x: x.fitness))
+            print([pop.population[i].fitness for i in range(size)])
             pop.evolve()
     else:
         print("Maximum generations reached without success.")

@@ -502,16 +502,25 @@ def create(leg_height, leg_width):
     supporting_leg = 1 - moving_leg
     SUPPORT_KNEE_ANGLE = +0.1
     supporting_knee_angle = SUPPORT_KNEE_ANGLE
+    past_speeds = []
     while True:
         s, r, done, info = env.step(a)
         total_reward += r
-        if steps % 20 == 0 or done:
-            print("\naction " + str(["{:+0.2f}".format(x) for x in a]))
-            print("step {} total_reward {:+0.2f}".format(steps, total_reward))
-            print("hull " + str(["{:+0.2f}".format(x) for x in s[0:4] ]))
-            print("leg0 " + str(["{:+0.2f}".format(x) for x in s[4:9] ]))
-            print("leg1 " + str(["{:+0.2f}".format(x) for x in s[9:14]]))
+        #print("speeds", env.joints[0].motorSpeed, env.joints[1].motorSpeed, env.joints[2].motorSpeed, env.joints[3].motorSpeed)
+        #if steps % 20 == 0 or done:
+            #print("\naction " + str(["{:+0.2f}".format(x) for x in a]))
+            #print("step {} total_reward {:+0.2f}".format(steps, total_reward))
+            #print("hull " + str(["{:+0.2f}".format(x) for x in s[0:4] ]))
+            #print("leg0 " + str(["{:+0.2f}".format(x) for x in s[4:9] ]))
+            #print("leg1 " + str(["{:+0.2f}".format(x) for x in s[9:14]]))
         steps += 1
+
+        past_speeds.append([env.joints[0].motorSpeed, env.joints[1].motorSpeed, env.joints[2].motorSpeed, env.joints[3].motorSpeed])
+        if len(past_speeds) > 200:
+            del past_speeds[0]
+            if all(past_speeds[0] == rest for rest in past_speeds):
+                done = True
+                total_reward = total_reward - 100.0
 
         contact0 = s[8]
         contact1 = s[13]
@@ -564,4 +573,5 @@ def create(leg_height, leg_width):
         a = np.clip(0.5*a, -1.0, 1.0)
 
         env.render()
-        if done: break
+        if done:
+            return total_reward
