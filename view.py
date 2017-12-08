@@ -20,11 +20,12 @@
     # rangefinder measurements to help to deal with the hardcore version. There's no coordinates
     # in the state vector. Lidar is less useful in normal version, but it works.
     #
-    # To solve the game you need to get 300 points in 1600 time steps.
+    # To solve the game you need to get 300 points in 1600 tiame steps.
     #
     # To solve hardcore version you need 300 points in 2000 time steps.
     #
     # Created by Oleg Klimov. Licensed on the same terms as the rest of OpenAI Gym.
+
 
 def create(leg_height, leg_width):
     import sys, math

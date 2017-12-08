@@ -1,9 +1,3 @@
-"""
-A python script that demonstrates a simple "Hello, world!" application using
-genetic algorithms.
-@author: John Svazic
-"""
-
 from random import (choice, random, randint)
 import view
 
@@ -13,12 +7,10 @@ class Chromosome:
     """
     This class is used to define a chromosome for the gentic algorithm
     simulation.
-
     This class is essentially nothing more than a container for the details
     of the chromosome, namely the gene (the string that represents our
     target string) and the fitness (how close the gene is to the target
     string).
-
     Note that this class is immutable.  Calling mate() or mutate() will
     result in a new chromosome instance being created.
     """
@@ -87,12 +79,10 @@ class Chromosome:
 class Population:
     """
     A class representing a population for a genetic algorithm simulation.
-
     A population is simply a sorted collection of chromosomes
     (sorted by fitness) that has a convenience method for evolution.  This
     implementation of a population uses a tournament selection algorithm for
     selecting parents for crossover during each generation's evolution.
-
     Note that this object is mutable, and calls to the evolve()
     method will generate a new collection of chromosome objects.
     """
