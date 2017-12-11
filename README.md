@@ -9,10 +9,14 @@ Victor Bianchi, Isabel Blancett, Subeen Kim, Shreya Rangarajan
 
 
 ### Getting Started:
+1. Download pygame
+2. Make sure you have python3 installed
+3. Fork and clone the repository
+4. To run the program, type "python filename.py" and watch the bipedal get better at walking overtime 
 
 ### Usage:
 
-### License: 
+### License:
 
 
 
