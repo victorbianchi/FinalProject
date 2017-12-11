@@ -9,6 +9,7 @@ from gym import spaces
 from gym.utils import colorize, seeding
 
 class Terrain(gym.Env):
+    """Class for bipedal testing environment"""
     def __init__(self):
         self.window_size = [600, 400]
         self.viewer = None
@@ -20,11 +21,12 @@ class Terrain(gym.Env):
         self._seed()
 
     def _seed(self, seed=None):
+        """Plant seed for random generation"""
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
     def make_slope(self):
-
+        """Randomly create a non-uniform slope for the bipedal"""
         y = self.terrain_height
         self.terrain = []
         self.terrain_x = []
@@ -34,7 +36,7 @@ class Terrain(gym.Env):
         for x in range(self.terrain_length):
             self.terrain_x.append(x)
             # TODO: Test what this actually does
-            slope = 0.5*slope + 0.01*np.sign(self.terrain_height - y)
+            slope = 0.4*slope + 0.01*np.sign(self.terrain_height - y)
             if x > self.start:
                 slope += self.np_random.uniform(-1, 1)  #1
             y += slope
@@ -42,6 +44,7 @@ class Terrain(gym.Env):
             self.terrain_y.append(y)
 
     def create_terrain(self):
+        """Use CreateStaticBody to define the terrain"""
         self.terrain_poly = []
         for i in range(self.terrain_length-1):
             poly = [
@@ -65,6 +68,7 @@ class Terrain(gym.Env):
 
 
     def draw(self, mode='human', close=False):
+        """Draw the terrain in window"""
         if close:
             if self.viewer is not None:
                 self.viewer.close()

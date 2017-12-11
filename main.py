@@ -1,7 +1,9 @@
 import env, agent, algo
+import time
 
 maxGenerations = 16384
-size = 1
+size = 5
+
 
 if __name__ == "__main__":
 
@@ -18,10 +20,14 @@ if __name__ == "__main__":
             agents[c].define_legs()
         print(agents)
 
+        time_prev = time.time()
         while(running):
-            terrain._render(agents)
-            for c in range(size):
-                agents[c].walk()
+            time_now = time.time()
+            if time_now - time_prev >= 1.0/40.0:
+                time_prev = time_now
+                terrain.draw(agents)
+                for c in range(size):
+                    agents[c].walk()
 
         pop.population = list(sorted(agents, key=lambda x: x.fitness))
         print("Average Fitness of population", i, "=", sum([pop.population[i].fitness for i in range(size)])/size)

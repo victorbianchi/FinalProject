@@ -8,6 +8,8 @@ import gym
 from gym import spaces
 from gym.utils import colorize, seeding
 
+import pygame
+
 wndw_height = 400
 wndw_width = 600
 step = 1
@@ -17,13 +19,24 @@ grass_length = 10
 start = 20
 friction = 2.5
 
-class Terrain(gym.Env):
+class ContactDetector(contactListener):
+    def __init__(self, env):
+        contactListener.__init__(self)
+        self.env = env
+    def BeginContact(self, contact):
+        if self.env.hull==contact.fixtureA.body or self.env.hull==contact.fixtureB.body:
+            self.env.game_over = True
+        for leg in [self.env.legs[1], self.env.legs[3]]:
+            if leg in [contact.fixtureA.body, contact.fixtureB.body]:
+                leg.ground_contact = True
+    def EndContact(self, contact):
+        for leg in [self.env.legs[1], self.env.legs[3]]:
+            if leg in [contact.fixtureA.body, contact.fixtureB.body]:
+                leg.ground_contact = False
 
-    FPS = 50
-    metadata = {
-        'render.modes': ['human', 'rgb_array'],
-        'video.frames_per_second' : FPS
-    }
+class Terrain(object):
+
+    FPS = 40.0
 
     def __init__(self):
         self._seed()
@@ -33,11 +46,13 @@ class Terrain(gym.Env):
         self.terrain = None
 
         self.prev_shaping = None
-        self._reset()
-
+        self.reset()
+        self.PPM = 20.0
         high = np.array([np.inf]*24)
         self.action_space = spaces.Box(np.array([-1,-1,-1,-1]), np.array([+1,+1,+1,+1]))
         self.observation_space = spaces.Box(-high, high)
+        self.screen = pygame.display.set_mode((wndw_width, wndw_height), 0, 32)
+        pygame.display.set_caption('Simple pygame example')
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -98,7 +113,7 @@ class Terrain(gym.Env):
             self.terrain_poly.append( (poly, color) )
         self.terrain.reverse()
 
-    def _reset(self):
+    def reset(self):
         self._destroy()
         self.game_over = False
         self.prev_shaping = None
@@ -106,7 +121,7 @@ class Terrain(gym.Env):
         self._generate_terrain()
 
 
-    def _render(self, agents, mode='human', close=False):
+    def render(self, agents, mode='human', close=False):
         if close:
             if self.viewer is not None:
                 self.viewer.close()
@@ -149,3 +164,19 @@ class Terrain(gym.Env):
         self.viewer.draw_polyline(f + [f[0]], color=(0,0,0), linewidth=2 )
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
+
+    def draw(self, agents):
+        legs = [item for sublist in [agents[c].legs for c in range(len(agents))] for item in sublist]
+        hulls = [agents[c].hull for c in range(len(agents))]
+        self.drawlist = self.terrain + legs + hulls
+        self.screen.fill((0, 0, 0, 0))
+        for body in self.drawlist:
+            for fixture in body.fixtures:
+                shape = fixture.shape
+                vertices = [body.transform * v for v in shape.vertices]
+                vertices = [(v[0], wndw_height - v[1]) for v in vertices]
+                vertices.append(vertices[0])
+                color = body.color1
+                rgba = (color[0]*255.0, color[1]*255.0, color[2]*255.0)
+                pygame.draw.polygon(self.screen, rgba, vertices)
+        pygame.display.flip()

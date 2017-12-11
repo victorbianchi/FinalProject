@@ -6,7 +6,7 @@ start = 20
 wndw_height = 400
 wndw_width = 600
 step = 1
-FPS = 10.0
+FPS = 40.0
 grass_height = wndw_height/4
 grass_length = 10
 
@@ -28,18 +28,20 @@ class ContactDetector(contactListener):
 class Agent(object):
 
     def __init__(self, character, world):
+        leg_h = character.gene[0]/5.0
+        leg_w = character.gene[1]/5.0
         self.world = world
         self.hull = None
         self.legs = []
         self.joints = []
         self.init_x = step * start/2
-        self.init_y = grass_height + 2*character.leg_h
+        self.init_y = grass_height + 2*leg_h
         self.hull_density = 5.0
         self.leg_density = 1.0
         self.friction = 0.1
         self.hull_vertices = [(-30,+9), (+6,+9), (+34,+1),(+34,-8), (-30,-8)]
-        self.leg_height = character.leg_h
-        self.leg_width = character.leg_w
+        self.leg_height = leg_h
+        self.leg_width = leg_w
         self.motors_torque = 80
         self.leg_down = -0.25
         self.speed_hip = 4
