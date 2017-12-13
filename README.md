@@ -12,9 +12,10 @@ Victor Bianchi, Isabel Blancett, Subeen Kim, Shreya Rangarajan
 1. Download pygame
 2. Make sure you have python3 installed
 3. Fork and clone the repository
-4. To run the program, type "python filename.py" and watch the bipedal get better at walking overtime 
+4. To run the program, type "python evolve.py" in the terminal window and watch the bipedal get better at walking overtime
 
 ### Usage:
+The code will run automatically when you type in the terminal window and you will see a bipedal walk along a terrain. You can change the "roughness" of the terrain in the files and see if the bipedal evolves to get better at walking along the rough terrain. 
 
 ### License:
 
