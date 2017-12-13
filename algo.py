@@ -158,7 +158,7 @@ class Population:
 if __name__ == "__main__":
     maxGenerations = 16384
     size = 20
-    pop = Population(size=size, crossover=0.8, elitism=0.2, mutation=0.3)
+    pop = Population(size=size, crossover=0.8, elitism=0.2, mutation=0.1)
     for i in range(1, maxGenerations + 1):
         print("Generation %d:" % i)
         total_fitness = 0
