@@ -9,33 +9,40 @@ SPEED = 5
 class Bipedal:
 
     def __init__(self, name, gene):
-        self.genome = {'wheel1_r': gene[0],'wheel2_r': gene[0],'body_length': gene[1],'body_width': gene[2]}
+        self.genome = {'head': gene[0],'torso': gene[1],'right_leg': gene[2],'left_leg': gene[3]}
         self.name = name
 
     def build(self, world, x0, y0):
         width = self.genome['body_length']
         height = self.genome['body_width']
-        radius1 = self.genome['wheel1_r']
-        radius2 = self.genome['wheel2_r']
+        length1 = self.genome['right_leg_length']
+        length2 = self.genome['left_lef_length']
 
         body = world.CreateDynamicBody(position=(x0, y0))
         body.CreatePolygonFixture(box=(width, height), density=1, friction=0.3)
 
-        wheel1 = world.CreateDynamicBody(position=(x0-width*0.95, y0-height*0.85))
-        wheel1.CreateCircleFixture(radius=radius1, density=1, friction=WHEEL_FRICTION)
-        world.CreateRevoluteJoint(bodyA=body, bodyB=wheel1,
-                anchor = wheel1.worldCenter,
+        torso = world.CreateDynamicBody(position=(x0-width*0.95, y0-height*0.85))
+        torso.CreateCircleFixture(radius=length1, density=1, friction=WHEEL_FRICTION)
+        world.CreateRevoluteJoint(bodyA=head, bodyB=torso,
+                anchor = right_leg.worldCenter,
                 maxMotorTorque = MAX_TORQUE, motorSpeed = SPEED,
                 enableMotor = True)
 
-        wheel2 = world.CreateDynamicBody(position=(x0+width*0.95, y0-height*0.85))
-        wheel2.CreateCircleFixture(radius=radius2, density=1, friction=WHEEL_FRICTION)
-        world.CreateRevoluteJoint(bodyA=body, bodyB=wheel2,
-                anchor = wheel2.worldCenter,
+        right_leg = world.CreateDynamicBody(position=(x0-width*0.95, y0-height*0.85))
+        right_leg.CreateCircleFixture(radius=length1, density=1, friction=WHEEL_FRICTION)
+        world.CreateRevoluteJoint(bodyA=body, bodyB=right_leg,
+                anchor = right_leg.worldCenter,
                 maxMotorTorque = MAX_TORQUE, motorSpeed = SPEED,
                 enableMotor = True)
 
-        self.bodies = [body, wheel1, wheel2]
+        left_leg = world.CreateDynamicBody(position=(x0+width*0.95, y0-height*0.85))
+        right_leg.CreateCircleFixture(radius=length2, density=1, friction=WHEEL_FRICTION)
+        world.CreateRevoluteJoint(bodyA=body, bodyB=left_leg,
+                anchor = left_leg.worldCenter,
+                maxMotorTorque = MAX_TORQUE, motorSpeed = SPEED,
+                enableMotor = True)
+
+        self.bodies = [body, torso, right_leg, left_leg]
         self.tracker = body.worldCenter
         # return the body object for tracking position
         return body
