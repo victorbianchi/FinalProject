@@ -9,14 +9,14 @@ SPEED = 5
 class Bipedal:
 
     def __init__(self, name, gene):
-        self.genome = {'head': gene[0],'torso': gene[1],'right_leg': gene[2],'left_leg': gene[3]}
+        self.genome = {'width': gene[0],'height': gene[1],'right_leg': gene[2],'left_leg': gene[2]}
         self.name = name
 
     def build(self, world, x0, y0):
-        width = self.genome['body_length']
-        height = self.genome['body_width']
-        length1 = self.genome['right_leg_length']
-        length2 = self.genome['left_lef_length']
+        width = self.genome['width']
+        height = self.genome['height']
+        length1 = self.genome['right_leg']
+        length2 = self.genome['left_leg']
 
         body = world.CreateDynamicBody(position=(x0, y0))
         body.CreatePolygonFixture(box=(width, height), density=1, friction=0.3)
