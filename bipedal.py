@@ -21,28 +21,39 @@ class Bipedal:
         body = world.CreateDynamicBody(position=(x0, y0))
         body.CreatePolygonFixture(box=(width, height), density=1, friction=0.3)
 
-        torso = world.CreateDynamicBody(position=(x0-width*0.95, y0-height*0.85))
-        torso.CreateCircleFixture(radius=length1, density=1, friction=WHEEL_FRICTION)
-        world.CreateRevoluteJoint(bodyA=head, bodyB=torso,
-                anchor = right_leg.worldCenter,
+        head = world.CreateDynamicBody(position=(x0, y0+4))
+        head.CreateCircleFixture(radius = 1.8, density=1, friction=0.3)
+
+        neck = world.CreateDynamicBody(position=(x0, y0+2.5))
+        neck.CreatePolygonFixture(box = (0.5, 1), density=1, friction=WHEEL_FRICTION)
+
+        world.CreateRevoluteJoint(bodyA=head, bodyB=neck, anchor = head.worldCenter, enableMotor = False)
+        world.CreateRevoluteJoint(bodyA=neck, bodyB=body, anchor = body.worldCenter, enableMotor = False)
+
+        right_leg = world.CreateDynamicBody(position=(x0+0.2, y0-2))
+        right_leg.CreatePolygonFixture(box = (0.5,3), density=1, friction=WHEEL_FRICTION)
+        world.CreateRevoluteJoint(bodyA=right_leg, bodyB=body,
+                anchor = body.worldCenter,
+                lowerAngle = -0.5 * 3.14, upperAngle = 0.5 * 3.14, enableLimit = True,
                 maxMotorTorque = MAX_TORQUE, motorSpeed = SPEED,
                 enableMotor = True)
 
-        right_leg = world.CreateDynamicBody(position=(x0-width*0.95, y0-height*0.85))
-        right_leg.CreateCircleFixture(radius=length1, density=1, friction=WHEEL_FRICTION)
-        world.CreateRevoluteJoint(bodyA=body, bodyB=right_leg,
-                anchor = right_leg.worldCenter,
+        left_leg = world.CreateDynamicBody(position=(x0-0.2, y0-2))
+        left_leg.CreatePolygonFixture(box = (0.5,3), density=1, friction=WHEEL_FRICTION)
+        world.CreateRevoluteJoint(bodyA=left_leg, bodyB=right_leg,
+                anchor = body.worldCenter,
+                lowerAngle = -0.5 * 3.14, upperAngle = 0.5 * 3.14,
+                enableLimit = True,
                 maxMotorTorque = MAX_TORQUE, motorSpeed = SPEED,
                 enableMotor = True)
+        #left_leg = world.CreateDynamicBody(position=(x0+width*0.95, y0-height*0.85))
+        #right_leg.CreatePolygonFixture(box= (3,6), density=1, friction=WHEEL_FRICTION)
+        #world.CreateRevoluteJoint(bodyA=body, bodyB=left_leg,
+        #        anchor = left_leg.worldCenter,
+        #        maxMotorTorque = MAX_TORQUE, motorSpeed = SPEED,
+        #        enableMotor = True)
 
-        left_leg = world.CreateDynamicBody(position=(x0+width*0.95, y0-height*0.85))
-        right_leg.CreateCircleFixture(radius=length2, density=1, friction=WHEEL_FRICTION)
-        world.CreateRevoluteJoint(bodyA=body, bodyB=left_leg,
-                anchor = left_leg.worldCenter,
-                maxMotorTorque = MAX_TORQUE, motorSpeed = SPEED,
-                enableMotor = True)
-
-        self.bodies = [body, torso, right_leg, left_leg]
+        self.bodies = [body, head, neck, right_leg, left_leg]
         self.tracker = body.worldCenter
         # return the body object for tracking position
         return body
