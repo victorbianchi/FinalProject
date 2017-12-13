@@ -15,12 +15,12 @@ class Chromosome:
     result in a new chromosome instance being created.
     """
     # [leg height, leg width]
-    _target_gene = [100, 25]
-    max_gene = [200, 50]
+    gene_range = [[50, 100], [50, 100], [50, 100]]
 
     def __init__(self, gene):
         self.gene = gene
         self.fitness = 0
+        self.name = self.get_name
 
     def mate(self, mate):
         """
@@ -71,10 +71,13 @@ class Chromosome:
         gene.
         """
         gene = []
-        for val in Chromosome.max_gene:
-            gene.append(randint(2, val))
+        for min_val, max_val in Chromosome.gene_range:
+            gene.append(randint(min_val, max_val)/50.0)
 
-        return Chromosome(gene)
+        return gene
+
+    def get_name():
+        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
 
 class Population:
     """
@@ -95,7 +98,7 @@ class Population:
         self.crossover = crossover
 
         buf = []
-        for i in range(size): buf.append(Chromosome.gen_random())
+        for i in range(size): buf.append(Chromosome(Chromosome.gen_random()))
         self.population = list(sorted(buf, key=lambda x: x.fitness))
 
     def _tournament_selection(self):
@@ -145,6 +148,7 @@ class Population:
 
         self.population = list(sorted(buf[:size], key=lambda x: x.fitness))
 
+"""
 if __name__ == "__main__":
     maxGenerations = 16384
     size = 20
@@ -163,3 +167,4 @@ if __name__ == "__main__":
             pop.evolve()
     else:
         print("Maximum generations reached without success.")
+        """

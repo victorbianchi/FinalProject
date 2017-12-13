@@ -1,109 +1,98 @@
-import sys, math
-import numpy as np
+"""
+Module for creating the racing tracks each of which is an instance of class Track.
+Allows to create a flat block, series of slopes or a continuous track with
+parametrised roughness. Class method build the track as a series of box2d polygons.
+TODO:
+    Write class docstrings!
+    Make the spawnpoint just above the first track segment
+    Provide a finish point to run_simulation
+"""
 
-import Box2D
-from Box2D.b2 import (edgeShape, circleShape, fixtureDef, polygonShape, revoluteJointDef, contactListener)
+import Box2D  # The main library
+# Box2D.b2 maps Box2D.b2Vec2 to vec2 (and so on)
+from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody, vec2)
+import random
+from datetime import datetime
+import math
 
-import gym
-from gym import spaces
-from gym.utils import colorize, seeding
+class Terrain:
+    def __init__(self, length, roughness=0, seed=None):
+        self.length = length
+        self.roughness = roughness
+        self.seed = seed
+        self.generated = False
+        self.generate()
 
-class Terrain(gym.Env):
-    """Class for bipedal testing environment"""
-    def __init__(self):
-        self.window_size = [600, 400]
-        self.viewer = None
-        self.world = Box2D.b2World()
-        self.terrain_length = self.window_size[0]
-        self.terrain_height = self.window_size[1]/4
-        self.start = 20
-        self.friction = 2.5
-        self._seed()
+    def generate(self):
+        if self.seed:
+            random.seed(seed)
+        else:
+            random.seed(datetime.now())
 
-    def _seed(self, seed=None):
-        """Plant seed for random generation"""
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
+        if self.roughness == 0:
+            self.gen_flat()
+        elif self.roughness == 1:
+            self.gen_slopes()
+        else:
+            self.gen_rough(self.roughness-1)
 
-    def make_slope(self):
-        """Randomly create a non-uniform slope for the bipedal"""
-        y = self.terrain_height
-        self.terrain = []
-        self.terrain_x = []
-        self.terrain_y = []
-        slope = 0.0
+    def build(self, world):
+        if not self.generated:
+            return None
 
-        for x in range(self.terrain_length):
-            self.terrain_x.append(x)
-            # TODO: Test what this actually does
-            slope = 0.4*slope + 0.01*np.sign(self.terrain_height - y)
-            if x > self.start:
-                slope += self.np_random.uniform(-1, 1)  #1
-            y += slope
+        start = 0
+        self.bodies = []
+        for i in range(self.n_segments):
+            body = world.CreateStaticBody(
+                    position=self.seg_positions[i],
+                    angle=self.seg_angles[i],
+                    shapes=polygonShape(
+                        box=(self.seg_lengths[i]/2., .5)))
+            start += self.seg_lengths[i]
+            self.bodies.append(body)
 
-            self.terrain_y.append(y)
-
-    def create_terrain(self):
-        """Use CreateStaticBody to define the terrain"""
-        self.terrain_poly = []
-        for i in range(self.terrain_length-1):
-            poly = [
-                (self.terrain_x[i],   self.terrain_y[i]),
-                (self.terrain_x[i+1], self.terrain_y[i+1])
-                ]
-            t = self.world.CreateStaticBody(
-                fixtures = fixtureDef(
-                    shape=edgeShape(vertices=poly),
-                    friction = self.friction,
-                    categoryBits=0x0001,
-                ))
-            color = (0.3, 1.0 if i%2==0 else 0.8, 0.3)
-            t.color1 = color
-            t.color2 = color
-            self.terrain.append(t)
-            color = (0.4, 0.6, 0.3)
-            poly += [ (poly[1][0], 0), (poly[0][0], 0) ]
-            self.terrain_poly.append( (poly, color) )
-        self.terrain.reverse()
+        return self.length
 
 
-    def draw(self, mode='human', close=False):
-        """Draw the terrain in window"""
-        if close:
-            if self.viewer is not None:
-                self.viewer.close()
-                self.viewer = None
-            return
+    def gen_flat(self):
+        self.n_segments = 1
+        self.seg_lengths = [self.length]
+        self.seg_angles = [0]
+        self.seg_positions = [(0,3)]
+        self.spawn = (5, 10)
+        self.generated = True
 
-        from gym.envs.classic_control import rendering
-        if self.viewer is None:
-            self.viewer = rendering.Viewer(self.window_size[0], self.window_size[1])
+    def gen_slopes(self):
+        seg_len = 30
+        nn = self.length/seg_len
+        self.n_segments = nn
+        self.seg_lengths = [seg_len for x in range(nn)]
+        self.seg_angles = [0.15 for x in range(nn)]
+        self.seg_positions = [(0.9*seg_len*x,3) for x in range(nn)]
+        self.spawn = (5, 10)
+        self.generated = True
 
-        self.viewer.draw_polygon([(0,0),(self.window_size[0], 0),
-                                  (self.window_size[0],self.window_size[1]),
-                                  (0,self.window_size[1]),],color=(0.9, 0.9, 1.0))
+    def gen_rough(self, roughness):
+        SEG_LENGTH = 15
+        nn = self.length//SEG_LENGTH
+        self.n_segments = nn
+        self.seg_lengths = [0]*nn
+        self.seg_angles = [0]*nn
+        self.seg_positions = [0]*nn
+        prev_pos = vec2(0, 20) # starting coordinates
+        for i in range(nn):
+            self.seg_lengths[i] = SEG_LENGTH
+            angle = random.uniform(-0.1, 0.1)*roughness
+            self.seg_angles[i] = angle
+            length = SEG_LENGTH * math.cos(angle)
+            height = SEG_LENGTH * math.sin(angle)
+            self.seg_positions[i] = prev_pos + (.5*length, .5*height)
+            prev_pos += (length, height)
+        self.spawn = (SEG_LENGTH, 30)
+        self.generated = True
 
-        for poly, color in self.terrain_poly:
-            self.viewer.draw_polygon(poly, color=color)
-
-        for obj in self.terrain:
-            for f in obj.fixtures:
-                trans = f.body.transform
-                if type(f.shape) is circleShape:
-                    t = rendering.Transform(translation=trans*f.shape.pos)
-                    self.viewer.draw_circle(f.shape.radius, 30, color=obj.color1).add_attr(t)
-                    self.viewer.draw_circle(f.shape.radius, 30, color=obj.color2, filled=False, linewidth=2).add_attr(t)
-                else:
-                    path = [trans*v for v in f.shape.vertices]
-                    self.viewer.draw_polygon(path, color=obj.color1)
-                    path.append(path[0])
-                    self.viewer.draw_polyline(path, color=obj.color2, linewidth=2)
-
-        return self.viewer.render(return_rgb_array = mode=='rgb_array')
-
-if __name__ == "__main__":
-    terrain = Terrain()
-    terrain.make_slope()
-    terrain.create_terrain()
-    while True:
-        terrain.draw()
+    def get_spawn_pos(self):
+        if not self.generated:
+            print('Error, track not generated for some reason')
+            return None
+        return self.spawn
