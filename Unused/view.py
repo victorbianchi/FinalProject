@@ -37,19 +37,17 @@ def create(leg_height, leg_width):
     import gym
     from gym import spaces
     from gym.utils import colorize, seeding
-
-    # TODO: FIND UNITS
     FPS    = 50
     SCALE  = 30.0   # affects how fast-paced the game is, forces should be adjusted as well
 
     MOTORS_TORQUE = 80
     SPEED_HIP     = 4
     SPEED_KNEE    = 6
+    LIDAR_RANGE   = 160/SCALE
 
     INITIAL_RANDOM = 5
 
-    # TODO: MAKE BODY SIZE VARIABLE
-    BODY_SHAPE=[
+    HULL_POLY =[
         (-30,+9), (+6,+9), (+34,+1),
         (+34,-8), (-30,-8)
         ]
@@ -266,6 +264,7 @@ def create(leg_height, leg_width):
             self.game_over = False
             self.prev_shaping = None
             self.scroll = 0.0
+            self.lidar_render = 0
 
             W = VIEWPORT_W/SCALE
             H = VIEWPORT_H/SCALE
@@ -278,8 +277,7 @@ def create(leg_height, leg_width):
             self.hull = self.world.CreateDynamicBody(
                 position = (init_x, init_y),
                 fixtures = fixtureDef(
-                    shape=polygonShape(vertices=[ (x/SCALE,y/SCALE) for x,y in BODY_SHAPE ]),
-                    #TODO: CHANGE MASS
+                    shape=polygonShape(vertices=[ (x/SCALE,y/SCALE) for x,y in HULL_POLY ]),
                     density=5.0,
                     friction=0.1,
                     categoryBits=0x0020,
@@ -350,6 +348,15 @@ def create(leg_height, leg_width):
 
             self.drawlist = self.terrain + self.legs + [self.hull]
 
+            class LidarCallback(Box2D.b2.rayCastCallback):
+                def ReportFixture(self, fixture, point, normal, fraction):
+                    if (fixture.filterData.categoryBits & 1) == 0:
+                        return 1
+                    self.p2 = point
+                    self.fraction = fraction
+                    return 0
+            self.lidar = [LidarCallback() for _ in range(10)]
+
             return self._step(np.array([0,0,0,0]))[0]
 
         def _step(self, action):
@@ -375,11 +382,17 @@ def create(leg_height, leg_width):
             pos = self.hull.position
             vel = self.hull.linearVelocity
 
-#State consists of hull angle speed, angular velocity, horizontal speed, vertical speed,
-# position of joints and joints angular speed, legs contact with ground
+            for i in range(10):
+                self.lidar[i].fraction = 1.0
+                self.lidar[i].p1 = pos
+                self.lidar[i].p2 = (
+                    pos[0] + math.sin(1.5*i/10.0)*LIDAR_RANGE,
+                    pos[1] - math.cos(1.5*i/10.0)*LIDAR_RANGE)
+                self.world.RayCast(self.lidar[i], self.lidar[i].p1, self.lidar[i].p2)
+
             state = [
-                self.hull.angle,        # body angle
-                2.0*self.hull.angularVelocity/FPS, #
+                self.hull.angle,        # Normal angles up to 0.5 here, but sure more is possible.
+                2.0*self.hull.angularVelocity/FPS,
                 0.3*vel.x*(VIEWPORT_W/SCALE)/FPS,  # Normalized to get -1..1 range
                 0.3*vel.y*(VIEWPORT_H/SCALE)/FPS,
                 self.joints[0].angle,   # This will give 1.1 on high up, but it's still OK (and there should be spikes on hiting the ground, that's normal too)
@@ -393,7 +406,8 @@ def create(leg_height, leg_width):
                 self.joints[3].speed / SPEED_KNEE,
                 1.0 if self.legs[3].ground_contact else 0.0
                 ]
-            assert len(state)==14
+            state += [l.fraction for l in self.lidar]
+            assert len(state)==24
 
             self.scroll = pos.x - VIEWPORT_W/SCALE/5
 
@@ -444,6 +458,11 @@ def create(leg_height, leg_width):
                 if poly[0][0] > self.scroll + VIEWPORT_W/SCALE: continue
                 self.viewer.draw_polygon(poly, color=color)
 
+            self.lidar_render = (self.lidar_render+1) % 100
+            i = self.lidar_render
+            if i < 2*len(self.lidar):
+                l = self.lidar[i] if i < len(self.lidar) else self.lidar[len(self.lidar)-i-1]
+                self.viewer.draw_polyline( [l.p1, l.p2], color=(1,0,0), linewidth=1 )
 
             for obj in self.drawlist:
                 for f in obj.fixtures:
@@ -467,6 +486,9 @@ def create(leg_height, leg_width):
             self.viewer.draw_polyline(f + [f[0]], color=(0,0,0), linewidth=2 )
 
             return self.viewer.render(return_rgb_array = mode=='rgb_array')
+
+    class BipedalWalkerHardcore(BipedalWalker):
+        hardcore = True
 
 
     env = BipedalWalker()
