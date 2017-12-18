@@ -21,6 +21,7 @@ class Data:
     to the constructor. Dynamic bodies can be saved at each timestep via the
     save_state method, which can be called for many named timelines.
     """
+
     def __init__(self, terrain=None, name="history"):
         """
         Create state history
@@ -42,11 +43,11 @@ class Data:
         self.terrain = get_shapes(terrain)
 
     Timeline = namedtuple('timeline', ['vehicle', 'vehicle_states',
-        'tracker_states'])
+                                       'tracker_states'])
 
     def new_timeline(self, vehicle, name='timeline'):
         if name in self.timelines:
-            print('Warning, overwriting existing timeline "%s"' %name)
+            print('Warning, overwriting existing timeline "%s"' % name)
         timeline = self.Timeline(vehicle, [], [])
         self.timelines[name] = timeline
         return timeline
@@ -80,13 +81,18 @@ class Data:
     def max_length(self):
         if self.timelines:
             return max([len(self.timelines[key].vehicle_states) for key in
-                                self.timelines])
+                        self.timelines])
+        # It's conventional to explicitly return None from fruitful functions.
+        # Does it make sense for max_length to be called before self.timelines is set?
+        # Maybe this should be an error.
+        return None
 
     def write_to_file(self, filename):
         """
         NOT IMPLEMENTED! Store history in a file
         """
-        #open file for storing the history
+        raise NotImplementedError()  # makes it easier to diagnose when some calls this and shouldn't
+        # open file for storing the history <- this comment isn't necessary; the docstring and actual code cover this
         shelf = shelve.open(filename)
         # TODO: use self.name?
         shelf.setdefault('histories', [])
@@ -99,7 +105,7 @@ class Data:
         """
         NOT IMPLEMENTED! Load history from a file
         """
-        pass
+        raise NotImplementedError()
 
     def get_shapes(self, index, timeline='timeline'):
         """
@@ -116,24 +122,34 @@ def get_shapes(instance):
     shapes = []
     for body in instance.bodies:
         for fixture in body:
-            shapes.append( fixture.shape.get_transformed_shape(body) )
+            shapes.append(fixture.shape.get_transformed_shape(body))
     return shapes
 
 # Helper functions to extract shapes in their correct positions
 #   Add them as methods to the shape classes for 'polymorphic' calls
+
+
 def get_transformed_edge(edge, body):
     new_vertices = [tuple(body.transform * v) for v in edge.vertices]
     return edgeShape(vertices=new_vertices)
+
+
 edgeShape.get_transformed_shape = get_transformed_edge
+
 
 def get_transformed_polygon(polygon, body):
     new_vertices = [tuple(body.transform * v) for v in polygon.vertices]
     return polygonShape(vertices=new_vertices)
+
+
 polygonShape.get_transformed_shape = get_transformed_polygon
+
 
 def get_transformed_circle(circle, body):
     new_pos = tuple(body.transform * circle.pos)
     return circleShape(pos=new_pos, radius=circle.radius)
+
+
 circleShape.get_transformed_shape = get_transformed_circle
 
 
@@ -141,10 +157,15 @@ circleShape.get_transformed_shape = get_transformed_circle
 def get_params_polygon(polygon, body):
     vertices = [tuple(body.transform * v) for v in polygon.vertices]
     return 'polygon', vertices
+
+
 polygonShape.get_params = get_params_polygon
+
 
 def get_params_circle(circle, body):
     position = tuple(body.transform * circle.pos)
     radius = circle.radius
     return 'circle', (position, radius)
+
+
 circleShape.get_params = get_params_circle
