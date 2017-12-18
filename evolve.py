@@ -19,20 +19,22 @@ num_gen = 50
 size_gen = 10
 num_shown = 5
 
+
 def main():
 
     # Create first generation
     pool = Pop(size_gen)
 
     # Step through generations
-    for j in range(num_gen):
+    for _ in range(num_gen):
 
         # initialize data histogram for sim visualization
         hist = Data()
         terrain = Terrain(400, 4)
 
         # create pybox2d dynamic bodies based on individual's gene
-        gen = [Biped(pool.population[i].name, pool.population[i].gene) for i in range(size_gen)]
+        gen = [Biped(pool.population[i].name, pool.population[i].gene)
+               for i in range(size_gen)]
 
         for k, biped in enumerate(gen):
 
@@ -50,7 +52,8 @@ def main():
             hist.timelines[biped.name] = race.history.timelines['timeline']
 
         # resort gene pool
-        pool.population = list(sorted(pool.population, key=lambda x: x.fitness))
+        pool.population = list(
+            sorted(pool.population, key=lambda x: x.fitness))
 
         # visualize top bipeds' simulations
         shown = pool.population[-num_shown:]
@@ -60,6 +63,7 @@ def main():
 
         # evolve gene pool
         pool.evolve()
+
 
 if __name__ == '__main__':
     main()
